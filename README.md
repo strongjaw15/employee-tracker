@@ -2,16 +2,9 @@
 
 ## Badges
 
-![](https://img.shields.io/badge/License-MIT-green) ![](https://img.shields.io/badge/db-MySQL-blue)
+![](https://img.shields.io/badge/License-MIT-green) ![](https://img.shields.io/badge/db-MySQL-blue) ![](https://img.shields.io/badge/lng-JavaScript-purple)
 
 ## Description
-
-Provide a short description explaining the what, why, and how of your project. Use the following questions as a guide:
-
-- What was your motivation?
-- Why did you build this project? (Note: the answer is not "Because it was a homework assignment.")
-- What problem does it solve?
-- What did you learn?
 
 This app is an employee management program that runs a MySQL database. It uses a CLI in node js to operate the program. I wanted to build something that would let the user create work departments, roles, employees, and assign managers and salaries to the employees. This is a concise way to keep up-to-date employee data. I learned a lot aboout using MySQL while making this program.
 
