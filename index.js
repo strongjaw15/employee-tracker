@@ -2,6 +2,7 @@ const inquirer = require('inquirer')
 const mysql = require('mysql2')
 const cTable = require('console.table')
 
+// This creates the connection with the database.
 const db = mysql.createConnection(
   {
     host: 'localhost',
@@ -11,10 +12,7 @@ const db = mysql.createConnection(
   }
 )
 
-// GIVEN a command-line application that accepts user input
-// WHEN I start the application
-// THEN I am presented with the following options: view all departments, view all roles, view all employees, add a department, add a role, add an employee, and update an employee role
-
+// This is the main menu.
 const mainMenu = () => {
   inquirer.prompt([
     {
@@ -46,7 +44,6 @@ const mainMenu = () => {
 }
 
 // This shows the department table.
-
 const viewDepartments = () => {
   db.query('SELECT * FROM department', (err, results) => {
     if (err) {
@@ -58,10 +55,9 @@ const viewDepartments = () => {
   })
 }
 
-// This shows the role table.
-
+// This shows the roles and their department.
 const viewRoles = () => {
-  db.query('SELECT * FROM role', (err, results) => {
+  db.query('SELECT role.id, title, salary, name AS department FROM role JOIN department ON role.department_id = department.id', (err, results) => {
     if (err) {
       console.log(err)
     } else {
@@ -71,10 +67,9 @@ const viewRoles = () => {
   })
 }
 
-// This shows the employee table.
-
+// This shows the employee ID, first name, last name, job title, department, salary, and manager ID for each employee.
 const viewEmployees = () => {
-  db.query('SELECT * FROM employee', (err, results) => {
+  db.query('SELECT employee.id, first_name, last_name, role.title, department.name AS department, salary, manager_id FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id', (err, results) => {
     if (err) {
       console.log(err)
     } else {
@@ -84,9 +79,7 @@ const viewEmployees = () => {
   })
 }
 
-// WHEN I choose to add a department
-// THEN I am prompted to enter the name of the department and that department is added to the database
-
+// This adds a new department to the department table.
 const addDepartment = () => {
   inquirer.prompt([
     {
@@ -101,16 +94,14 @@ const addDepartment = () => {
       if (err) {
         console.log(err)
       } else {
-        console.table(results)
+        console.log('Success!')
         back()
       }
     })
   })
 }
 
-// WHEN I choose to add a role
-// THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database
-
+// This adds a new role to the role table.
 const addRole = () => {
   inquirer.prompt([
     {
@@ -135,57 +126,63 @@ const addRole = () => {
       if (err) {
         console.log(err)
       } else {
-        console.table(results)
+        console.log('Success!')
         back()
       }
     })
   })
 }
 
-// WHEN I choose to add an employee
-// THEN I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database
-
-// Need to change this so that the user enters the role name and manager name and a db query comes back with the correct id numbers for those items.
-
+// This creates a new employee.
 const addEmployee = () => {
-  inquirer.prompt([
-    {
-      type: 'input',
-      message: 'Please enter the new employee first name:',
-      name: 'first_name'
-    },
-    {
-      type: 'input',
-      message: 'Please enter the new employee last name:',
-      name: 'last_name'
-    },
-    {
-      type: 'input',
-      message: 'Please enter the new employee role ID:',
-      name: 'role_id'
-    },
-    {
-      type: 'input',
-      message: 'Please enter the new employee department ID:',
-      name: 'department_id'
+  db.query(`SELECT title FROM officers_db.role`, (err, results) => {
+    if (err) {
+      console.log(err)
+    } else {
+      const roles = results.map(role => role.title)
+      inquirer.prompt([
+        {
+          type: 'input',
+          message: 'Please enter the new employee first name:',
+          name: 'first_name'
+        },
+        {
+          type: 'input',
+          message: 'Please enter the new employee last name:',
+          name: 'last_name'
+        },
+        {
+          type: 'list',
+          message: 'Please choose the new employee role:',
+          choices: roles,
+          name: 'role'
+        },
+        {
+          type: 'input',
+          message: 'Please choose the new employee manager ID:',
+          name: 'manager'
+        }
+      ])
+      .then(data => {
+        const datapersist = data
+        db.query(`SELECT id FROM officers_db.role WHERE title = "${datapersist.role}"`, (err, results) => {
+          const role_id = results.map(role => role.id)
+          db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
+          VALUES(?, ?, ?, ?)`, [datapersist.first_name, datapersist.last_name, role_id[0], datapersist.manager], (err, results) => {
+            if (err) {
+              console.log(err)
+            } else {
+              console.log('Success!')
+              back()
+            }
+          })
+        })
+      })
     }
-  ])
-  .then(data => {
-    db.query(`INSERT INTO employee (first_name, last_name, role_id, department_id)
-    VALUES(?, ?, ?, ?)`, [data.first_name, data.last_name, data.role_id, data.department_id], (err, results) => {
-      if (err) {
-        console.log(err)
-      } else {
-        console.table(results)
-        back()
-      }
-    })
   })
 }
 
-// WHEN I choose to update an employee role
-// THEN I am prompted to select an employee to update and their new role and this information is updated in the database
-
+// This updates an employee role.
 const updateEmployeeRole = () => {
   db.query(`SELECT id, first_name, last_name FROM officers_db.employee`, (err, res) => {
     if (err) {
