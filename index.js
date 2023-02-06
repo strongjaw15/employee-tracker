@@ -186,7 +186,68 @@ const addEmployee = () => {
 // WHEN I choose to update an employee role
 // THEN I am prompted to select an employee to update and their new role and this information is updated in the database
 
-
+const updateEmployeeRole = () => {
+  db.query(`SELECT id, first_name, last_name FROM officers_db.employee`, (err, res) => {
+    if (err) {
+      console.log(err)
+    } else {
+      console.table(res);
+      db.query(`SELECT id FROM officers_db.employee`, (err, results) => {
+        if (err) {
+          console.log(err)
+        } else {
+          let ids = [];
+          for (i=0; i<results.length; i++) {
+            ids.push(`${[i+1]}`)
+          };
+          inquirer.prompt([
+            {
+              type: 'list',
+              message: 'Choose an employee by ID number:',
+              choices: ids,
+              name: 'employee_id'
+            }
+          ])
+          .then(data => {
+            const employee_id = data.employee_id;
+            db.query(`SELECT title FROM officers_db.role`, (err, results) => {
+              if (err) {
+                console.log(err)
+              } else {
+                const titles = results.map((item) => item.title)
+                inquirer.prompt([
+                  {
+                    type: 'list',
+                    message: 'Choose the new role:',
+                    choices: titles,
+                    name: 'title'
+                  }
+                ])
+                .then(data => {
+                  db.query(`SELECT id FROM officers_db.role WHERE title = "${data.title}"`, (err, results) => {
+                    if (err) {
+                      console.log(err)
+                    } else {
+                      const role_id = results.map((item) => item.id)
+                      db.query(`UPDATE employee SET role_id = ${role_id} WHERE id = ${employee_id}`, (err, results) => {
+                        if (err) {
+                          console.log(err)
+                        } else {
+                          console.log('Success!');
+                          viewEmployees()
+                        }
+                      })
+                    }
+                  })
+                })
+              }
+            })
+          })
+        }
+      })
+    }
+  })
+}
 
 // This lets the user go back to the main menu or quit.
 const back = () => {
