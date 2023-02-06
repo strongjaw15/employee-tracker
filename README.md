@@ -14,7 +14,7 @@ To install, download the repo and run "npm install" in the terminal command line
 
 ## Usage
 
-Once installed, enter "node index" in the terminal comand line opened to the root folder and the program will start.
+Once installed, copy the contents of the schema.sql file and run it in MySQL Workbench. If you want to seed the database,, do the same with the contents of the seeds.sql file. Then enter "node index" in the terminal comand line opened to the root folder and the program will start.
 
 ## Visuals
 
